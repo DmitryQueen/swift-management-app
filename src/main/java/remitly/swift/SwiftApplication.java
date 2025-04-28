@@ -8,7 +8,6 @@ public class SwiftApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SwiftApplication.class, args);
-
 	}
 
 }

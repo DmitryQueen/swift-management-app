@@ -4,13 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import remitly.swift.dto.CountrySwiftCodesDto;
+import remitly.swift.dto.SwiftCodesByCountryDto;
 import remitly.swift.dto.SwiftDto;
 import remitly.swift.entity.Swift;
+import remitly.swift.exception.CountryIsoCodeNotFoundException;
 import remitly.swift.exception.DuplicateSwiftCodeException;
 import remitly.swift.exception.SwiftCodeNotFoundException;
 import remitly.swift.mapper.SwiftMapper;
 import remitly.swift.repository.SwiftRepository;
+import remitly.swift.validation.SwiftValidator;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class SwiftService {
 
     private final SwiftRepository swiftRepository;
     private final SwiftMapper swiftMapper;
+    private final SwiftValidator swiftValidator;
 
     @Transactional(readOnly = true)
     public SwiftDto getSwiftDetails(String swiftCode) {
@@ -38,9 +41,14 @@ public class SwiftService {
     }
 
     @Transactional(readOnly = true)
-    public CountrySwiftCodesDto getAllSwiftsByCountry(String countryIso2) {
-        List<Swift> swifts = swiftRepository.findAllByCountryISO2(countryIso2);
-        return swiftMapper.toCountrySwiftCodesDto(countryIso2, swifts);
+    public SwiftCodesByCountryDto getAllSwiftsByCountry(String countryIso2) {
+        String upperCaseIso2 = countryIso2.toUpperCase();
+        if (!swiftRepository.existsByCountryISO2(upperCaseIso2)) {
+            throw new CountryIsoCodeNotFoundException(upperCaseIso2);
+        }
+
+        List<Swift> swifts = swiftRepository.findAllByCountryISO2(upperCaseIso2);
+        return swiftMapper.toCountrySwiftCodesDto(upperCaseIso2, swifts);
     }
 
     @Transactional
@@ -50,8 +58,9 @@ public class SwiftService {
             throw new DuplicateSwiftCodeException(swiftCode);
         }
 
-        Swift codeDetails = swiftMapper.toEntity(dto);
+        swiftValidator.validateSwiftDto(dto);
 
+        Swift codeDetails = swiftMapper.toEntity(dto);
         codeDetails.setCountryName(codeDetails.getCountryName().toUpperCase());
         codeDetails.setCountryISO2(codeDetails.getCountryISO2().toUpperCase());
         codeDetails.setHeadquarter(isHeadquarter(swiftCode));

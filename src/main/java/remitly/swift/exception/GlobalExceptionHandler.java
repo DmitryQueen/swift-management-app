@@ -24,7 +24,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(errorMessage));
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class,
+            ConstraintViolationException.class,
+            ValidationException.class})
     public ResponseEntity<MessageResponseDto> handleValidationExceptions(Exception ex) {
         String errorMessage = "Validation error";
 

@@ -15,7 +15,6 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class SwiftDto {
 
     private String address;
@@ -35,5 +34,6 @@ public class SwiftDto {
     @Size(min = 11, max = 11)
     private String swiftCode;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<SwiftDto> branches;
 }

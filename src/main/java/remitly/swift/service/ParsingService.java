@@ -15,11 +15,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import static remitly.swift.utils.CsvHeaders.COUNTRY_ISO2;
-import static remitly.swift.utils.CsvHeaders.SWIFT_CODE;
 import static remitly.swift.utils.CsvHeaders.ADDRESS;
 import static remitly.swift.utils.CsvHeaders.BANK_NAME;
+import static remitly.swift.utils.CsvHeaders.COUNTRY_ISO2;
 import static remitly.swift.utils.CsvHeaders.COUNTRY_NAME;
+import static remitly.swift.utils.CsvHeaders.SWIFT_CODE;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -60,14 +60,23 @@ public class ParsingService {
 
     private void processRow(Map<String, String> row) {
         SwiftDto swift = SwiftDto.builder()
-                .address(row.get(ADDRESS))
-                .bankName(row.get(BANK_NAME))
-                .countryISO2(row.get(COUNTRY_ISO2))
-                .countryName(row.get(COUNTRY_NAME))
-                .swiftCode(row.get(SWIFT_CODE))
+                .address(safeTrim(row.get(ADDRESS)))
+                .bankName(safeTrim(row.get(BANK_NAME)))
+                .countryISO2(safeTrim(row.get(COUNTRY_ISO2)))
+                .countryName(safeTrim(row.get(COUNTRY_NAME)))
+                .swiftCode(safeTrim(row.get(SWIFT_CODE)))
                 .build();
 
-        swiftService.saveSwiftCode(swift);
+        try {
+            swiftService.saveSwiftCode(swift);
+        }
+        catch (Exception e) {
+            log.warn("Skipping invalid row due to error: {}, Row: {}", e.getMessage(), row);
+        }
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? null : value.trim();
     }
 
 }

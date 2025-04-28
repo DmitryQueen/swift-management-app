@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CountrySwiftCodesDto {
+public class SwiftCodesByCountryDto {
     private String countryISO2;
     private String countryName;
     private List<SwiftDto> swiftCodes;
