@@ -20,8 +20,18 @@ public interface SwiftRepository extends JpaRepository<Swift, Long> {
     boolean existsByCountryISO2(String countryISO2);
 
     @Query(value = """
-            select * from swift_codes
-            WHERE substring(swift_code FROM 1 FOR 8) = substring(:swiftCode FROM 1 FOR 8) AND is_headquarter = false;
-            """, nativeQuery = true)
+        SELECT COUNT(*)
+        FROM swift_codes
+        WHERE SUBSTRING(swift_code FROM 1 FOR 8) = SUBSTRING(:swiftCode FROM 1 FOR 8)
+          AND is_headquarter = true
+        """, nativeQuery = true)
+    int countExistingHeadquarters(String swiftCode);
+
+    @Query(value = """
+        SELECT *
+        FROM swift_codes
+        WHERE SUBSTRING(swift_code FROM 1 FOR 8) = SUBSTRING(:swiftCode FROM 1 FOR 8)
+          AND is_headquarter = false
+        """, nativeQuery = true)
     List<Swift> findAllBranches(String swiftCode);
 }

@@ -9,7 +9,7 @@ import remitly.swift.entity.Swift;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-28T13:56:04+0200",
+    date = "2025-04-30T15:46:47+0200",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.13.jar, environment: Java 17.0.14 (Amazon.com Inc.)"
 )
 @Component
@@ -27,7 +27,7 @@ public class SwiftMapperImpl implements SwiftMapper {
         swiftDto.bankName( swift.getBankName() );
         swiftDto.countryISO2( swift.getCountryISO2() );
         swiftDto.countryName( swift.getCountryName() );
-        swiftDto.headquarter( swift.isHeadquarter() );
+        swiftDto.headquarter( swift.getHeadquarter() );
         swiftDto.swiftCode( swift.getSwiftCode() );
 
         return swiftDto.build();
@@ -45,7 +45,7 @@ public class SwiftMapperImpl implements SwiftMapper {
         swift.bankName( swiftDto.getBankName() );
         swift.countryISO2( swiftDto.getCountryISO2() );
         swift.countryName( swiftDto.getCountryName() );
-        swift.headquarter( swiftDto.isHeadquarter() );
+        swift.headquarter( swiftDto.getHeadquarter() );
         swift.swiftCode( swiftDto.getSwiftCode() );
 
         return swift.build();

@@ -10,6 +10,7 @@ import remitly.swift.dto.SwiftCodesByCountryDto;
 import remitly.swift.dto.SwiftDto;
 import remitly.swift.entity.Swift;
 import remitly.swift.exception.CountryIsoCodeNotFoundException;
+import remitly.swift.exception.DuplicateHeadquarterException;
 import remitly.swift.exception.DuplicateSwiftCodeException;
 import remitly.swift.exception.SwiftCodeNotFoundException;
 import remitly.swift.mapper.SwiftMapper;
@@ -116,7 +117,6 @@ public class SwiftServiceTest {
 
     @Test
     public void saveSwiftCodeTest() {
-        when(swiftRepository.existsBySwiftCode(swiftCode)).thenReturn(false);
         when(swiftMapper.toEntity(swiftDto)).thenReturn(swiftEntity);
         when(swiftRepository.save(any(Swift.class))).thenReturn(swiftEntity);
         when(swiftMapper.toDto(swiftEntity)).thenReturn(swiftDto);
@@ -125,7 +125,7 @@ public class SwiftServiceTest {
 
         assertNotNull(result);
         assertEquals(swiftCode, result.getSwiftCode());
-        verify(swiftRepository).existsBySwiftCode(swiftCode);
+        verify(swiftValidator).validateFieldsSwiftDto(swiftDto);
         verify(swiftRepository).save(any(Swift.class));
         verify(swiftMapper).toEntity(swiftDto);
         verify(swiftMapper).toDto(swiftEntity);
@@ -133,11 +133,27 @@ public class SwiftServiceTest {
 
     @Test
     public void saveSwiftCodeTest_throwsDuplicateSwiftCodeException() {
+        String swiftCode = swiftDto.getSwiftCode();
+
         when(swiftRepository.existsBySwiftCode(swiftCode)).thenReturn(true);
 
         assertThrows(DuplicateSwiftCodeException.class, () -> swiftService.saveSwiftCode(swiftDto));
 
         verify(swiftRepository).existsBySwiftCode(swiftCode);
+    }
+
+    @Test
+    public void saveSwiftCodeTest_throwsDuplicateHeadquarterException() {
+        String swiftCode = swiftDto.getSwiftCode();
+        swiftDto.setHeadquarter(true);
+
+        when(swiftRepository.existsBySwiftCode(swiftCode)).thenReturn(false);
+        when(swiftRepository.countExistingHeadquarters(swiftCode)).thenReturn(1);
+
+        assertThrows(DuplicateHeadquarterException.class, () -> swiftService.saveSwiftCode(swiftDto));
+
+        verify(swiftRepository).existsBySwiftCode(swiftCode);
+        verify(swiftRepository).countExistingHeadquarters(swiftCode);
     }
 
     @Test

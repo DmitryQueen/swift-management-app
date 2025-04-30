@@ -11,6 +11,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import static remitly.swift.utils.SwiftConstants.COUNTRY_ISO_LENGTH;
+import static remitly.swift.utils.SwiftConstants.SWIFT_MIN_LENGTH;
+import static remitly.swift.utils.SwiftConstants.SWIFT_MAX_LENGTH;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -22,16 +26,16 @@ public class SwiftDto {
     @NotBlank(message = "Bank field should't be blank")
     private String bankName;
 
-    @Size(min = 2, max = 2)
+    @Size(min = COUNTRY_ISO_LENGTH, max = COUNTRY_ISO_LENGTH)
     private String countryISO2;
 
     @NotBlank(message = "Country name field shoudn't be blank")
     private String countryName;
 
     @JsonProperty("isHeadquarter")
-    private boolean headquarter;
+    private Boolean headquarter;
 
-    @Size(min = 11, max = 11)
+    @Size(min = SWIFT_MIN_LENGTH, max = SWIFT_MAX_LENGTH)
     private String swiftCode;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

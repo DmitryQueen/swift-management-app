@@ -90,51 +90,75 @@ public class SwiftControllerIT {
 
     @Test
     void addNewSwiftCodeTest() {
-        given().
-                contentType(ContentType.JSON).
-                body(swiftDto).
-                when().
-                post("v1/swift-codes").
-                then().
-                assertThat().body("message", equalTo("Swift added successfully"));
+        given()
+                .contentType(ContentType.JSON)
+                .body(swiftDto)
+                .when()
+                .post("v1/swift-codes")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .body("message", equalTo("Swift added successfully"));
 
         Swift result = swiftRepository.findBySwiftCode(swiftDto.getSwiftCode()).get();
         assertEquals(result.getSwiftCode(), swiftDto.getSwiftCode());
     }
 
     @Test
+    void addNewSwiftCodeTest_throwsDuplicateHeadquarterException() {
+        swiftDto.setSwiftCode("AAISALTR001");
+        swiftDto.setHeadquarter(true);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(swiftDto)
+                .when()
+                .post("v1/swift-codes")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.CONFLICT.value())
+                .body("message", equalTo("Duplicate headquarter code: " + swiftDto.getSwiftCode()));
+    }
+
+    @Test
     void addNewSwiftCodeTest_throwsDuplicateSwiftCodeException() {
         swiftDto.setSwiftCode("AAISALTRXXX");
 
-        given().
-                contentType(ContentType.JSON).
-                body(swiftDto).
-                when().
-                post("v1/swift-codes").
-                then().
-                assertThat().body("message", equalTo("Swift code already exists: " + swiftDto.getSwiftCode()));
+        given()
+                .contentType(ContentType.JSON)
+                .body(swiftDto)
+                .when()
+                .post("v1/swift-codes")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.CONFLICT.value())
+                .body("message", equalTo("Swift code already exists: " + swiftDto.getSwiftCode()));
     }
 
     @Test
     void deleteSwiftCodeTest() {
-        swiftDto.setSwiftCode("AAISALTRXXX");
+        String swiftCode = "AAISALTRXXX";
 
-        given().
-                when().
-                delete("v1/swift-codes/" + swiftDto.getSwiftCode()).
-                then().
-                assertThat().body("message", equalTo("Swift deleted successfully"));
+        given()
+                .when()
+                .delete("v1/swift-codes/" + swiftCode)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .body("message", equalTo("Swift deleted successfully"));
     }
 
     @Test
     void deleteSwiftCodeTest_throwsSwiftCodeNotFoundException() {
         String invalidSwiftCode = "UNKNOWNCODE";
 
-        given().
-                when().
-                delete("v1/swift-codes/" + invalidSwiftCode).
-                then().
-                assertThat().body("message", equalTo("Swift code not found: " + invalidSwiftCode));
+        given()
+                .when()
+                .delete("v1/swift-codes/" + invalidSwiftCode)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .body("message", equalTo("Swift code not found: " + invalidSwiftCode));
     }
 
     @Test
@@ -191,6 +215,8 @@ public class SwiftControllerIT {
                 .when()
                 .get("/v1/swift-codes/country/" + isoCode)
                 .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
                 .body("message", equalTo("There is no requested ISO2 code in our database: " + isoCode));
     }
+
 }

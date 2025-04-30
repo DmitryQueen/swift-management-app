@@ -8,6 +8,7 @@ import remitly.swift.dto.SwiftCodesByCountryDto;
 import remitly.swift.dto.SwiftDto;
 import remitly.swift.entity.Swift;
 import remitly.swift.exception.CountryIsoCodeNotFoundException;
+import remitly.swift.exception.DuplicateHeadquarterException;
 import remitly.swift.exception.DuplicateSwiftCodeException;
 import remitly.swift.exception.SwiftCodeNotFoundException;
 import remitly.swift.mapper.SwiftMapper;
@@ -15,6 +16,9 @@ import remitly.swift.repository.SwiftRepository;
 import remitly.swift.validation.SwiftValidator;
 
 import java.util.List;
+
+import static remitly.swift.utils.SwiftConstants.SWIFT_MAX_LENGTH;
+import static remitly.swift.utils.SwiftConstants.SWIFT_MIN_LENGTH;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +36,7 @@ public class SwiftService {
 
         SwiftDto dto = swiftMapper.toDto(swift);
 
-        if (swift.isHeadquarter()) {
+        if (swift.getHeadquarter()) {
             List<Swift> branches = swiftRepository.findAllBranches(swiftCode);
             List<SwiftDto> branchDtos = swiftMapper.toDtoList(branches);
             dto.setBranches(branchDtos);
@@ -54,16 +58,16 @@ public class SwiftService {
     @Transactional
     public SwiftDto saveSwiftCode(SwiftDto dto) {
         String swiftCode = dto.getSwiftCode();
-        if (swiftRepository.existsBySwiftCode(swiftCode)) {
-            throw new DuplicateSwiftCodeException(swiftCode);
-        }
 
-        swiftValidator.validateSwiftDto(dto);
+        checkForDuplicates(dto);
+        swiftValidator.validateFieldsSwiftDto(dto);
 
         Swift codeDetails = swiftMapper.toEntity(dto);
         codeDetails.setCountryName(codeDetails.getCountryName().toUpperCase());
         codeDetails.setCountryISO2(codeDetails.getCountryISO2().toUpperCase());
-        codeDetails.setHeadquarter(isHeadquarter(swiftCode));
+        if (codeDetails.getHeadquarter() == null) {
+            codeDetails.setHeadquarter(isHeadquarter(swiftCode));
+        }
 
         Swift savedSwift = swiftRepository.save(codeDetails);
         log.info("Saved new Swift code: " + savedSwift);
@@ -81,6 +85,20 @@ public class SwiftService {
     }
 
     private boolean isHeadquarter(String swiftCode) {
-        return swiftCode != null && swiftCode.length() == 11 && swiftCode.endsWith("XXX");
+        int swiftLength = swiftCode.length();
+        if ((swiftLength == SWIFT_MAX_LENGTH && swiftCode.endsWith("XXX")) || swiftLength == SWIFT_MIN_LENGTH) {
+            return true;
+        }
+        return swiftRepository.countExistingHeadquarters(swiftCode) == 0;
+    }
+
+    private void checkForDuplicates(SwiftDto dto) {
+        String swiftCode = dto.getSwiftCode();
+        if (swiftRepository.existsBySwiftCode(swiftCode)) {
+            throw new DuplicateSwiftCodeException(swiftCode);
+        }
+        if (dto.getHeadquarter() != null && dto.getHeadquarter() && swiftRepository.countExistingHeadquarters(swiftCode) > 0) {
+            throw new DuplicateHeadquarterException(swiftCode);
+        }
     }
 }

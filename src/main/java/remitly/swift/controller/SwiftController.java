@@ -25,7 +25,7 @@ public class SwiftController {
     private final SwiftService swiftService;
 
     @GetMapping("/{swiftCode}")
-    public ResponseEntity<SwiftDto> getSwiftDetails(@PathVariable @Size(min = 11, max = 11, message = "Swift code size must have 11 characters") String swiftCode) {
+    public ResponseEntity<SwiftDto> getSwiftDetails(@PathVariable @Size(min = 8, max = 11, message = "Swift code should have from 8 to 11 characters") String swiftCode) {
         SwiftDto retrieved = swiftService.getSwiftDetails(swiftCode);
         return ResponseEntity.ok().body(retrieved);
     }
@@ -44,7 +44,7 @@ public class SwiftController {
     }
 
     @DeleteMapping("/{swiftCode}")
-    public ResponseEntity<MessageResponseDto> deleteSwiftCode(@PathVariable @Size(min = 11, max = 11, message = "Swift code size must have 11 characters") String swiftCode) {
+    public ResponseEntity<MessageResponseDto> deleteSwiftCode(@PathVariable @Size(min = 8, max = 11, message = "Swift code should from 8 to 11 characters") String swiftCode) {
         swiftService.deleteSwiftCode(swiftCode);
         return ResponseEntity.ok()
                 .body(new MessageResponseDto("Swift deleted successfully"));

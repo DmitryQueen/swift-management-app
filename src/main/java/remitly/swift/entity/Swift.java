@@ -31,7 +31,7 @@ public class Swift {
     private String countryName;
 
     @Column(name = "is_headquarter", nullable = false)
-    private boolean headquarter;
+    private Boolean headquarter;
 
     @Column(name = "swift_code", nullable = false, unique = true)
     private String swiftCode;
